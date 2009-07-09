@@ -90,7 +90,7 @@ sub login
 {
     my $self = shift;
 
-    my $uri = $self->_make_uri( '/logged_out' );
+    my $uri = $self->make_uri( '/logged_out' );
 
     my $response =
         $self->post( $uri,
@@ -104,7 +104,7 @@ sub login
         unless $response->is_success();
 }
 
-sub _make_uri
+sub make_uri
 {
     my $self = shift;
     my $path = shift;

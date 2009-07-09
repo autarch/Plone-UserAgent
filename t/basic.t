@@ -29,9 +29,9 @@ use Plone::UserAgent;
                                     password => 'bar',
                                   );
 
-    is( $ua->_make_uri('/whatever'),
+    is( $ua->make_uri('/whatever'),
         'http://example.com/whatever',
-        '_make_uri uses base uri' );
+        'make_uri uses base uri' );
 }
 
 {
