@@ -65,10 +65,10 @@ sub BUILD
         my $config = $self->_config_data();
 
         die 'Must provide a username and password or a valid config file'
-            unless $config && $config->{'-'}{username} && $config->{'-'}{password};
+            unless $config && $config->{'_'}{username} && $config->{'_'}{password};
 
-        $self->_set_username( $config->{'-'}{username} );
-        $self->_set_password( $config->{'-'}{password} );
+        $self->_set_username( $config->{'_'}{username} );
+        $self->_set_password( $config->{'_'}{password} );
     }
 
     $self->cookie_jar( HTTP::Cookies->new() )
@@ -90,18 +90,23 @@ sub login
 {
     my $self = shift;
 
-    my $uri = $self->make_uri( '/logged_out' );
+    my $uri = $self->make_uri( '/login_form' );
 
     my $response =
         $self->post( $uri,
-                     { __ac_name     => $self->username(),
-                       __ac_password => $self->password(),
-                       submit        => 'Log in',
+                     { __ac_name        => $self->username(),
+                       __ac_password    => $self->password(),
+                       came_from        => $self->base_uri(),
+                       cookies_enabled  => q{},
+                       'form.submitted' => 1,
+                       js_enabled       => q{},
+                       login_name       => q{},
+                       submit           => 'Log in',
                      },
                    );
 
     die "Could not log in to $uri"
-        unless $response->is_success();
+        unless $response->is_redirect();
 }
 
 sub make_uri
