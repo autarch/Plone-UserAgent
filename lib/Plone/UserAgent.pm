@@ -49,10 +49,11 @@ has config_file =>
     );
 
 has _config_data =>
-    ( is      => 'ro',
-      isa     => 'HashRef',
-      lazy    => 1,
-      builder => '_build_config_data',
+    ( is       => 'ro',
+      isa      => 'HashRef',
+      lazy     => 1,
+      builder  => '_build_config_data',
+      init_arg => undef,
     );
 
 
@@ -73,6 +74,18 @@ sub BUILD
 
     $self->cookie_jar( HTTP::Cookies->new() )
         unless $self->cookie_jar();
+}
+
+sub FOREIGNBUILDARGS
+{
+    my $class = shift;
+    my $args  = $class->BUILDARGS(@_);
+
+    my %copy = %{ $args };
+
+    delete @copy{ qw( base_uri username password config_file ) };
+
+    return %copy;
 }
 
 sub _build_config_data
