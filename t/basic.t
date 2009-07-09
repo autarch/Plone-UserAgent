@@ -8,11 +8,16 @@ use Plone::UserAgent;
 
 
 {
+    no warnings 'redefine';
+    local *File::HomeDir::my_home = sub
+    {
+        return '/does not exist, I hope!';
+    };
+
     throws_ok( sub { Plone::UserAgent->new( base_uri => 'http://example.com' ) },
                qr/\QMust provide a username and password or a valid config file/,
                'cannot create a new ua without a username & password' );
 
-    no warnings 'redefine';
     local *Plone::UserAgent::_build_config_data = sub
     {
         return { '-' => {} };
@@ -41,7 +46,7 @@ use Plone::UserAgent;
                                   );
 
     my @post;
-    my $rc = 200;
+    my $rc = 301;
 
     no warnings 'redefine';
     local *LWP::UserAgent::post = sub { shift; @post = @_; return HTTP::Response->new($rc); };
@@ -49,17 +54,22 @@ use Plone::UserAgent;
     $ua->login();
 
     is_deeply( \@post,
-               [ 'http://example.com/logged_out',
+               [ 'http://example.com/login_form',
                  { __ac_name     => 'foo',
                    __ac_password => 'bar',
-                   submit        => 'Log in',
+                   came_from        => $ua->base_uri(),
+                   cookies_enabled  => q{},
+                   'form.submitted' => 1,
+                   js_enabled       => q{},
+                   login_name       => q{},
+                   submit           => 'Log in',
                  },
                ],
                'login method makes expected post' );
 
     $rc = 500;
     throws_ok( sub { $ua->login() },
-               qr{\QCould not log in to http://example.com/logged_out},
+               qr{\QCould not log in to http://example.com/login_form},
                'throws an error when login fails' );
 }
 
